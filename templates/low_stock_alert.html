@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Low Stock Alert</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #F44336;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #F44336;
+            margin: 0;
+        }
+        .alert-icon {
+            text-align: center;
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        .alert-box {
+            background-color: #FFEBEE;
+            border-left: 4px solid #F44336;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .alert-box h2 {
+            margin-top: 0;
+            color: #F44336;
+        }
+        .product-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .product-info p {
+            margin: 8px 0;
+        }
+        .stock-level {
+            font-size: 32px;
+            font-weight: bold;
+            color: #F44336;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #F44336;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #777;
+            font-size: 12px;
+        }
+        .recommendation {
+            background-color: #E8F5E9;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>[ADMIN] Low Stock Alert</h1>
+        </div>
+
+        <div class="alert-icon">⚠️</div>
+
+        <div class="alert-box">
+            <h2>Inventory Alert</h2>
+            <p>
+                A product in your inventory has reached a low stock level and requires immediate attention.
+            </p>
+        </div>
+
+        <div class="product-info">
+            <p><strong>Product ID:</strong> {{ product_id }}</p>
+            <p><strong>Product Name:</strong> {{ product_name if product_name else "N/A" }}</p>
+            {% if sku %}
+            <p><strong>SKU:</strong> {{ sku }}</p>
+            {% endif %}
+            {% if category %}
+            <p><strong>Category:</strong> {{ category }}</p>
+            {% endif %}
+        </div>
+
+        <div class="stock-level">
+            Current Stock: {{ current_quantity }} units
+        </div>
+
+        <div style="text-align: center;">
+            <a href="https://admin.shophub.com/inventory/{{ product_id }}" class="button">View in Inventory</a>
+        </div>
+
+        <div class="recommendation">
+            <p style="margin: 0;"><strong>💡 Recommended Action:</strong></p>
+            <ul style="margin: 10px 0;">
+                <li>Review sales velocity for this product</li>
+                <li>Consider reordering from supplier</li>
+                <li>Check if product is on backorder</li>
+                <li>Update stock levels if count is incorrect</li>
+            </ul>
+        </div>
+
+        <p style="margin-top: 30px; font-size: 12px; color: #666;">
+            <strong>Note:</strong> This is an automated alert triggered when inventory falls below the configured threshold.
+            You can adjust alert thresholds in the admin dashboard.
+        </p>
+
+        <div class="footer">
+            <p>ShopHub Admin Notifications</p>
+            <p>&copy; 2026 ShopHub. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
