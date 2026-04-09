@@ -65,6 +65,7 @@ class NotificationConsumer:
         queues = [
             ("notifications.order.completed", "orders", "order.completed"),
             ("notifications.order.shipped", "orders", "order.shipped"),
+            ("notifications.order.cancelled", "orders", "order.cancelled"),
             ("notifications.low_stock", "inventory", "inventory.low_stock"),
             ("notifications.payment.failed", "payments", "payment.failed"),
         ]
@@ -92,6 +93,11 @@ class NotificationConsumer:
         self.channel.basic_consume(
             queue="notifications.order.shipped",
             on_message_callback=self._on_order_shipped,
+            auto_ack=False
+        )
+        self.channel.basic_consume(
+            queue="notifications.order.cancelled",
+            on_message_callback=self._on_order_cancelled,
             auto_ack=False
         )
         self.channel.basic_consume(
@@ -362,6 +368,68 @@ class NotificationConsumer:
 
         except Exception as e:
             logger.exception(f"Error sending payment failed notification: {str(e)}")
+        finally:
+            db.close()
+
+    def _on_order_cancelled(
+        self,
+        channel: BlockingChannel,
+        method: Basic.Deliver,
+        properties: BasicProperties,
+        body: bytes
+    ):
+        """Handle order.cancelled event."""
+        try:
+            data = json.loads(body)
+            logger.info(f"Received order.cancelled event: {data}")
+
+            # Send order cancelled email
+            asyncio.run(self._send_order_cancelled(data))
+
+            channel.basic_ack(delivery_tag=method.delivery_tag)
+
+        except Exception as e:
+            logger.exception(f"Error processing order.cancelled: {str(e)}")
+            channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+    async def _send_order_cancelled(self, data: dict):
+        """Send order cancelled email."""
+        db = SessionLocal()
+        try:
+            context = {
+                "order_id": data.get("order_id"),
+                "user_id": data.get("user_id"),
+                "subject": f"Order Cancelled - Order #{data.get('order_id')}"
+            }
+
+            subject, html_content = template_service.render_template(
+                "order_cancelled",
+                context
+            )
+
+            success, error = await email_service.send_email(
+                to_email=data.get("user_email"),
+                subject=subject,
+                html_content=html_content
+            )
+
+            # Log notification
+            notification = NotificationLog(
+                user_id=data.get("user_id"),
+                type="email",
+                channel="sendgrid",
+                recipient=data.get("user_email"),
+                subject=subject,
+                template="order_cancelled",
+                status="sent" if success else "failed",
+                error_message=error,
+                sent_at=datetime.utcnow() if success else None
+            )
+            db.add(notification)
+            db.commit()
+
+        except Exception as e:
+            logger.exception(f"Error sending order cancelled notification: {str(e)}")
         finally:
             db.close()
 
